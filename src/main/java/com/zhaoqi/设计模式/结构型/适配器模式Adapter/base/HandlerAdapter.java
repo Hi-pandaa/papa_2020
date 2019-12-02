@@ -4,4 +4,6 @@ public interface HandlerAdapter {
 
 
     boolean support(BaseHandler handler);
+
+    void invoke(BaseHandler handler);
 }
