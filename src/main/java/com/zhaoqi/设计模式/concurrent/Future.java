@@ -12,6 +12,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author zhaoqi
@@ -23,11 +25,11 @@ public class Future {
 
     static Random random = new Random();
 
-    public static void main(String[] args) throws ExecutionException, InterruptedException {
+    public static void main1(String[] args) throws ExecutionException, InterruptedException {
 
         List<java.util.concurrent.Future<Integer>> tasks = new ArrayList<java.util.concurrent.Future<Integer>>(12);
 
-        CountDownLatch cl =  new CountDownLatch(10);
+        CountDownLatch cl = new CountDownLatch(10);
 
         for (int i = 0; i < 10; i++) {
             tasks.add(executor.submit(() -> {
@@ -40,8 +42,10 @@ public class Future {
                 return i1;
             }));
         }
+
         //1.每个futuretask都阻塞等待结果  get()
-        //plan a 可以所有线程开启就开始收集信息
+        //plan a 可以所有线程开启就开始收集信息 但是每个都会自己阻塞 等于是每个都要有了结果才可以
+
         //plan b 可以等待所有的线程都执行完再开始统计 cl.await()  可以选择 部分线程执行完计算 就开始统计
         cl.await();
 
@@ -51,6 +55,40 @@ public class Future {
             java.util.concurrent.Future<Integer> future = tasks.get(i);
             System.out.println(future.get());
         }
+
+    }
+
+    static ReentrantLock lock = new ReentrantLock();
+    static Condition condition;
+
+
+
+    public static void main(String[] args) {
+         condition= lock.newCondition();
+
+        new Thread(() -> {
+
+            try {
+                lock.lock();
+                condition.await();
+                System.out.println("1234");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }).start();
+
+        new Thread(() -> {
+
+            try {
+                Thread.sleep(4000);
+                lock.lock();
+                condition.signal();
+                lock.unlock();
+                System.out.println("唤醒成功");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }).start();
 
     }
 }
