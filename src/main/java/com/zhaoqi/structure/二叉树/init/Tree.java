@@ -1,4 +1,4 @@
-package com.zhaoqi.structure.二叉树;
+package com.zhaoqi.structure.二叉树.init;
 
 import lombok.Data;
 
@@ -11,7 +11,7 @@ public class Tree<T> {
     TreeNode<T> top;
 
     @Data
-    static class TreeNode<T> {
+    public static class TreeNode<T> {
 
         private T val;
 
